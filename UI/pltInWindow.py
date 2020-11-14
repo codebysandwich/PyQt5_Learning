@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 '''
 @Author: sandwich
@@ -18,8 +19,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QPushButton, QVBoxLayout, QWidget, QSizePolicy
 
-# sys.path.append(r'.')
-
 
 class MplCanvas(FigureCanvas):
     def __init__(self) -> None:
@@ -31,7 +30,6 @@ class MplCanvas(FigureCanvas):
                     QSizePolicy.Expanding,
                     QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        
 
 class UI_Mainwindow(QMainWindow):
     """[summary]

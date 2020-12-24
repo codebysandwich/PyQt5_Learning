@@ -3,7 +3,7 @@
 # File              : Pollution_Draw.py
 # Author            : sanwich <122079260@qq.com>
 # Date              : 2020-12-23 17:06:34
-# Last Modified Date: 2020-12-23 19:04:56
+# Last Modified Date: 2020-12-24 10:11:56
 # Last Modified By  : sanwich <122079260@qq.com>
 
 import sys
@@ -56,8 +56,12 @@ class DrawWidget(QWidget):
         mask = (self.data['年'] == self.year) & \
                (self.data['月'] == self.month) & \
                (self.data['日'] == self.day)
-        dt = self.data[mask].copy()
-        dt = dt.sort_values(by='dt')
+        dt = self.data[mask]
+        dt = dt.sort_values(by='dt').set_index('dt')
+        start = datetime.strptime('%s-%s-%s 00:00:00'%(self.year, self.month, self.day), "%Y-%m-%d %H:%M:%S")
+        end = datetime.strptime('%s-%s-%s 23:00:00'%(self.year, self.month, self.day), "%Y-%m-%d %H:%M:%S")
+        dt_ser = pd.date_range(start=start, end=end, freq='H')
+        dt = dt.reindex(dt_ser)
         x = range(1, len(dt)+1)
         ax.plot(x, pd.to_numeric(dt.loc[:, 'O3(ug/m3)'], errors='coerce').to_list(), label='O3(ug/m3)')
         ax.plot(x, pd.to_numeric(dt.loc[:, 'PM2.5(ug/m3)'], errors='coerce').to_list(), label='PM2.5(ug/m3)')

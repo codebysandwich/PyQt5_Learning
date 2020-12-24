@@ -3,7 +3,7 @@
 # File              : Pollution_Draw.py
 # Author            : sanwich <122079260@qq.com>
 # Date              : 2020-12-23 17:06:34
-# Last Modified Date: 2020-12-24 10:33:37
+# Last Modified Date: 2020-12-24 13:40:34
 # Last Modified By  : sanwich <122079260@qq.com>
 
 import sys
@@ -35,7 +35,7 @@ class DrawWidget(QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.setWindowTitle('%s年%s月%s日' % (year, month, day))
-        self.setWindowIcon(QIcon('../source/draw.png'))
+        self.setWindowIcon(QIcon('./source/draw.png'))
         self.canvas = MplCanvas()
         self.ui.verticalLayout.addWidget(self.canvas)
         self.ui.verticalLayout.addWidget(NavigationToolbar(self.canvas, self))

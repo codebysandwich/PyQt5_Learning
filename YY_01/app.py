@@ -3,7 +3,7 @@
 # File              : app.py
 # Author            : sanwich <122079260@qq.com>
 # Date              : 2020-12-21 14:30:49
-# Last Modified Date: 2020-12-24 10:33:28
+# Last Modified Date: 2020-12-24 11:07:51
 # Last Modified By  : sanwich <122079260@qq.com>
 
 
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         cmb.setCurrentIndex(-1)
 
     def __load_setting(self):
-        with open('./source/setting.json', 'r') as fp:
+        with open('./source/setting.json', 'r', encoding='utf-8') as fp:
             js = json.load(fp)
             return js['filepath'], js['type']
 

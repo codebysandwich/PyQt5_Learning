@@ -3,7 +3,7 @@
 # File              : app.py
 # Author            : sanwich <122079260@qq.com>
 # Date              : 2020-12-21 14:30:49
-# Last Modified Date: 2020-12-23 21:01:16
+# Last Modified Date: 2020-12-24 10:08:57
 # Last Modified By  : sanwich <122079260@qq.com>
 
 
@@ -13,8 +13,9 @@ import pandas as pd
 from script.QtDataSet import PandasModel
 from script.Pollution_Draw import DrawWidget
 from MainWindow import Ui_MainWindow
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QDesktopWidget, QMessageBox
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QCursor
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHeaderView, QDesktopWidget, QMessageBox, QMenu, QAbstractItemView
 
 
 class MainWindow(QMainWindow):
@@ -23,20 +24,28 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self._datapath, self._wtype = self.__load_setting()
         self.ui.setupUi(self)
+        self.ui.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setWindowTitle("天气形式数据删选")
         self.setWindowIcon(QIcon('./source/icon.png'))
         self._data = pd.DataFrame()
         self._model = PandasModel(self._data)
         self._types = []
         self.load()
+        # 右键菜单
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_menu)
+        self.CustomContextMenu = QMenu(self)
+        # 创建选项
+        self.action_draw = self.CustomContextMenu.addAction("绘图")
+        self.action_reset = self.CustomContextMenu.addAction("重置")
+        self.action_draw.triggered.connect(self.draw_callback)
+        self.action_reset.triggered.connect(self.reset)
         # 信号槽
-        self.ui.cmb_type.currentIndexChanged.connect(self.type_callback)
-        self.ui.cmb_year.currentIndexChanged.connect(self.year_callback)
-        self.ui.cmb_month.currentIndexChanged.connect(self.month_callback)
-        self.ui.cmb_day.currentIndexChanged.connect(self.day_callback)
-        self.ui.tableView.clicked.connect(self.view_callback)
+        self.ui.cmb_type.activated.connect(self.type_callback)
+        self.ui.cmb_year.activated.connect(self.year_callback)
+        self.ui.cmb_month.activated.connect(self.month_callback)
+        self.ui.cmb_day.activated.connect(self.day_callback)
         self.ui.button_draw.clicked.connect(self.draw_callback)
-        self.ui.button_reset.clicked.connect(self.reset)
 
     def load(self):
         """
@@ -83,61 +92,44 @@ class MainWindow(QMainWindow):
             js = json.load(fp)
             return js['filepath'], js['type']
 
-    def __redraw(self):
-        self.ui.tableView.repaint()
-        self.ui.tableView.update()
-        QApplication.processEvents()
-
     # ---------------槽函数--------------- #
-    def __judge(self, cmb):
-        if cmb.currentIndex() == -1 or cmb.count() == 1:
-            return True
-
     def type_callback(self):
-        if self.__judge(self.ui.cmb_type):
-            return
+        QApplication.processEvents()
         _type = self.ui.cmb_type.currentText()
         self._model = PandasModel(self._data[self._data[self._wtype] == _type])
+        QApplication.processEvents()
         self.__load_data(self._model)
         self.__extra_filter()
-        self.__redraw()
 
     def year_callback(self):
-        if self.__judge(self.ui.cmb_year):
-            return
+        QApplication.processEvents()
         df = self._model.toDataFrame()
         mask = df.iloc[:, 0].astype(str) == self.ui.cmb_year.currentText()
         model = PandasModel(df[mask])
+        QApplication.processEvents()
         self.__load_data(model)
         self.__reset_cmb(self.ui.cmb_month, sorted(df[mask].iloc[:, 1].unique().tolist()))
         self.__reset_cmb(self.ui.cmb_day, sorted(df[mask].iloc[:, 2].unique().tolist()))
-        self.__redraw()
 
     def month_callback(self):
-        if self.__judge(self.ui.cmb_month):
-            return
+        QApplication.processEvents()
         df = self._model.toDataFrame()
         mask = (df.iloc[:, 1].astype(str) == self.ui.cmb_month.currentText()) & \
                (df.iloc[:, 0].astype(str) == self.ui.cmb_year.currentText())
         model = PandasModel(df[mask])
+        QApplication.processEvents()
         self.__load_data(model)
         self.__reset_cmb(self.ui.cmb_day, sorted(df[mask].iloc[:, 2].unique().tolist()))
-        self.__redraw()
 
     def day_callback(self):
-        if self.__judge(self.ui.cmb_day):
-            return
+        QApplication.processEvents()
         df = self._model.toDataFrame()
         mask = (df.iloc[:, 1].astype(str) == self.ui.cmb_month.currentText()) & \
                (df.iloc[:, 0].astype(str) == self.ui.cmb_year.currentText()) & \
                (df.iloc[:, 2].astype(str) == self.ui.cmb_day.currentText())
         model = PandasModel(df[mask])
+        QApplication.processEvents()
         self.__load_data(model)
-        self.__redraw()
-
-    def view_callback(self, clickedIndex):
-        row = clickedIndex.row()
-        self.ui.tableView.selectRow(row)
 
     def draw_callback(self):
         if not self.ui.tableView.selectedIndexes():
@@ -150,11 +142,16 @@ class MainWindow(QMainWindow):
         draw.show()
 
     def reset(self):
+        QApplication.processEvents()
         self._model = PandasModel(self._data)
+        QApplication.processEvents()
         self.__load_data(self._model)
         self.ui.cmb_type.setCurrentIndex(-1)
         self.__extra_filter()
-        self.__redraw()
+
+    def show_menu(self):
+        if self.ui.tableView.geometry().contains(QCursor.pos()):
+            self.CustomContextMenu.exec_(QCursor.pos())
 
 
 if __name__ == "__main__":
